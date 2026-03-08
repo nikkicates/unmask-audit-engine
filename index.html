@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNMASK | AI Structural Audit Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,700;1,700&family=Urbanist:wght@300;400;600;700;800;900&display=swap');
+        
+        :root {
+            --st-navy: #064680;
+            --st-teal: #58bbc2;
+            --st-blue-mid: #2a7ca3;
+            --st-purple-dark: #31245a;
+            --st-purple-light: #ac6dbf;
+            --bg: #0f172a;
+        }
+
+        body { font-family: 'Urbanist', sans-serif; background-color: var(--bg); color: #f8fafc; scroll-behavior: smooth; }
+        h1, h2, h3, h4, .font-serif { font-family: 'Lora', serif; }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+        }
+
+        .st-gradient-text {
+            background: linear-gradient(135deg, var(--st-teal) 0%, var(--st-purple-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        input[type=range] {
+            accent-color: var(--st-teal);
+            width: 100%;
+            height: 6px;
+            background: #1e293b;
+            border-radius: 5px;
+            appearance: none;
+        }
+
+        .metric-value {
+            color: var(--st-teal);
+            font-weight: 800;
+            font-size: 1.25rem;
+        }
+
+        .brand-strategic { font-family: 'Lora', serif; font-weight: 700; font-size: 1.5rem; color: #ffffff; text-transform: uppercase; line-height: 1; }
+        .brand-transformations { font-family: 'Urbanist', sans-serif; font-weight: 700; font-size: 0.75rem; color: var(--st-teal); letter-spacing: 0.35em; text-transform: uppercase; }
+
+        .definition-card {
+            border-left: 4px solid var(--st-blue-mid);
+            background: rgba(255, 255, 255, 0.02);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .definition-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-left-color: var(--st-purple-light);
+            transform: translateX(5px);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--st-navy); border-radius: 10px; }
+    </style>
+</head>
+<body class="p-4 md:p-8 selection:bg-[#ac6dbf]/30">
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Executive Navigation -->
+        <nav class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-8 glass-panel p-8 border-white/5 shadow-2xl">
+            <div class="flex items-center gap-6">
+                <!-- STRATEGIC TRANSFORMATIONS LOGO -->
+                <div class="w-16 h-16 flex-shrink-0">
+                    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M40 10L57.32 20V40L40 50L22.68 40V20L40 10Z" fill="#2a7ca3" fill-opacity="0.9"/>
+                        <path d="M30 35L47.32 45V65L30 75L12.68 65V45L30 35Z" fill="#ac6dbf" fill-opacity="0.8"/>
+                        <path d="M60 35L77.32 45V65L60 75L42.68 65V45L60 35Z" stroke="#ffffff" stroke-width="3"/>
+                        <path d="M60 50L68.66 55V65L60 70L51.34 65V55L60 50Z" fill="#58bbc2"/>
+                    </svg>
+                </div>
+                <div class="flex flex-col text-left">
+                    <div class="brand-strategic">Strategic</div>
+                    <div class="brand-transformations">Transformations</div>
+                    <div class="text-[9px] text-slate-500 uppercase font-bold tracking-[0.2em] mt-1 italic">Structural Recalibration Platform</div>
+                </div>
+            </div>
+            
+            <div class="flex gap-4 items-center">
+                <div class="bg-white/5 px-8 py-4 rounded-2xl border border-white/10 text-right">
+                    <div class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1">Team Structural Strain Score</div>
+                    <div id="mainScore" class="text-5xl font-serif font-bold text-[#58bbc2]">1.00</div>
+                </div>
+                <div class="flex flex-col items-center gap-2">
+                    <a href="https://calendar.app.google/M75xXcnUFNTKFcSe6" target="_blank" class="px-8 py-5 bg-[#064680] hover:bg-[#58bbc2] text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-lg hover:shadow-[#58bbc2]/20 text-center no-underline">
+                        Book Discovery Call
+                    </a>
+                    <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase text-center">with <span class="text-[#58bbc2]">Nikki Cates</span></p>
+                    <p class="text-[9px] text-slate-500 italic text-center">Structural Recalibration Strategist</p>
+                </div>
+            </div>
+        </nav>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 text-left">
+            
+            <!-- Side: Lexicon & Definitions -->
+            <div class="lg:col-span-4 space-y-6">
+                <div class="glass-panel p-8">
+                    <h3 class="text-xl font-bold mb-6 border-b border-white/10 pb-4 text-[#58bbc2]">The Executive Lexicon</h3>
+                    <p class="text-sm text-slate-400 mb-8 leading-relaxed italic">Aligning leadership on the core variables of structural health.</p>
+                    
+                    <div class="space-y-4">
+                        <div class="definition-card p-5 rounded-xl">
+                            <h4 class="text-xs font-bold text-white uppercase tracking-widest mb-2">Authority Gap</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">The delta between accountability and decision-rights. High gaps predict attrition.</p>
+                        </div>
+                        <div class="definition-card p-5 rounded-xl">
+                            <h4 class="text-xs font-bold text-white uppercase tracking-widest mb-2">Masking Tax</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">The productive capacity lost when leaders feel they must hide structural friction to maintain status.</p>
+                        </div>
+                        <div class="definition-card p-5 rounded-xl">
+                            <h4 class="text-xs font-bold text-white uppercase tracking-widest mb-2">Escalation Density</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">Measurement of velocity loss. High density indicates routine tasks are clogging the C-suite.</p>
+                        </div>
+                        <div class="definition-card p-5 rounded-xl">
+                            <h4 class="text-xs font-bold text-white uppercase tracking-widest mb-2">AI Oversight Load</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">The 'Invisible Labor' of automation. Oversight requirements often exceed production gains.</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-10 p-6 bg-[#31245a]/30 rounded-2xl border border-[#ac6dbf]/20">
+                        <p class="text-[10px] font-bold text-[#ac6dbf] uppercase mb-2 tracking-widest">Confidential Strategy Hub</p>
+                        <p class="text-xs text-slate-300 mb-4">This data is proprietary to your organization and Strategic Transformations.</p>
+                        <a href="mailto:info@strategicunmasking.com" class="text-xs font-bold text-[#58bbc2] hover:underline">Contact Strategist &rarr;</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center: Sliders & Controls -->
+            <div class="lg:col-span-8 space-y-8">
+                <div class="glass-panel p-10">
+                    <div class="flex justify-between items-center mb-10 border-b border-white/10 pb-6">
+                        <h2 class="text-3xl font-serif font-bold">Diagnostic Sliders</h2>
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest italic">Input Team Averages (Scale 1-5)</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-12">
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <label class="text-sm font-bold uppercase tracking-wider text-slate-300 text-left">1. Authority Alignment</label>
+                                <span class="metric-value" id="val1">1.0</span>
+                            </div>
+                            <input type="range" id="q1" min="1" max="5" step="0.1" value="1.0" oninput="calculateScore()">
+                            <p class="text-xs text-slate-400 font-semibold mt-1 text-left">Do they have the formal power to approve what they are blamed for?</p>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <label class="text-sm font-bold uppercase tracking-wider text-slate-300 text-left">2. Operational Squeeze</label>
+                                <span class="metric-value" id="val2">1.0</span>
+                            </div>
+                            <input type="range" id="q2" min="1" max="5" step="0.1" value="1.0" oninput="calculateScore()">
+                            <p class="text-xs text-slate-400 font-semibold mt-1 text-left">Is current load exceeding sustainable human capacity?</p>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <label class="text-sm font-bold uppercase tracking-wider text-slate-300 text-left">3. Culture of Masking</label>
+                                <span class="metric-value" id="val3">1.0</span>
+                            </div>
+                            <input type="range" id="q3" min="1" max="5" step="0.1" value="1.0" oninput="calculateScore()">
+                            <p class="text-xs text-slate-400 font-semibold mt-1 text-left">Pressure to project "Effortless Perfection" vs. reporting friction.</p>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <label class="text-sm font-bold uppercase tracking-wider text-slate-300 text-left">4. Escalation Density</label>
+                                <span class="metric-value" id="val4">1.0</span>
+                            </div>
+                            <input type="range" id="q4" min="1" max="5" step="0.1" value="1.0" oninput="calculateScore()">
+                            <p class="text-xs text-slate-400 font-semibold mt-1 text-left">Frequency of routine tasks requiring senior leadership sign-off.</p>
+                        </div>
+
+                        <div class="md:col-span-2 space-y-4 border-t border-white/5 pt-8">
+                            <div class="flex justify-between items-center">
+                                <label class="text-sm font-bold uppercase tracking-wider text-[#ac6dbf] text-left">5. AI Oversight Load (The Future Variable)</label>
+                                <span class="metric-value text-[#ac6dbf]" id="val5">1.0</span>
+                            </div>
+                            <input type="range" id="q5" min="1" max="5" step="0.1" value="1.0" oninput="calculateScore()" style="accent-color: var(--st-purple-light);">
+                            <p class="text-xs text-slate-400 font-semibold mt-1 text-center">Is automation increasing production volume without recalibrating human verification time?</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Result Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="glass-panel p-8">
+                        <h3 class="text-xs font-bold uppercase tracking-widest text-center mb-8 opacity-50">Team Fracture Profile</h3>
+                        <div class="h-[280px]">
+                            <canvas id="strainChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-8 border-l-4 border-l-[#58bbc2] text-left">
+                        <div class="flex justify-between items-start mb-6">
+                            <h3 class="text-xs font-bold uppercase tracking-widest text-[#58bbc2]">Automated Summary</h3>
+                            <div id="statusBadge" class="px-2 py-1 bg-emerald-500/20 text-emerald-400 text-[9px] font-bold rounded uppercase">Status: Stable</div>
+                        </div>
+                        
+                        <p id="insightText" class="text-lg font-light leading-relaxed text-slate-200 mb-8 italic">
+                            Architecture is stable. Continue monitoring AI impact.
+                        </p>
+
+                        <div class="border-t border-white/10 pt-6">
+                            <h4 class="text-[10px] font-bold uppercase text-slate-500 mb-4 tracking-widest">Priority Recalibration</h4>
+                            <ul id="recommendationList" class="space-y-3 text-sm text-slate-300 font-light"></ul>
+                        </div>
+
+                        <button onclick="copyInsight()" class="mt-10 w-full py-4 bg-white/5 border border-white/10 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-[#58bbc2] hover:text-[#064680] transition-all">
+                            Copy for Executive Briefing
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- What's Next CTA Section -->
+        <div class="mt-16 glass-panel p-10 md:p-16 border border-[#58bbc2]/20 relative overflow-hidden text-left">
+            <div class="absolute top-0 right-0 w-96 h-96 bg-[#ac6dbf]/5 rounded-full blur-[120px] pointer-events-none"></div>
+            <div class="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <p class="text-[10px] font-bold text-[#ac6dbf] uppercase tracking-[0.3em] mb-4">What Happens Next</p>
+                    <h2 class="text-4xl font-serif font-bold mb-6 leading-tight">Your Score Is the <span class="st-gradient-text">Starting Point.</span></h2>
+                    <p class="text-lg text-slate-400 font-light leading-relaxed mb-6">
+                        A score above <strong class="text-white">3.8</strong> signals imminent talent loss. A single retained manager at $100k saves your organization <strong class="text-[#58bbc2]">$213,000</strong> in replacement costs. One 90-minute strategy session with Nikki pays for itself many times over.
+                    </p>
+                    <p class="text-slate-500 text-sm italic">
+                        "We aren't just fixing burnout. We are redesigning power." — Nikki Cates, Structural Recalibration Strategist
+                    </p>
+                </div>
+                <div class="space-y-5">
+                    <div class="flex items-start gap-5 p-6 bg-white/5 rounded-2xl border border-white/10">
+                        <div class="w-10 h-10 rounded-xl bg-[#064680] flex items-center justify-center font-bold text-sm flex-shrink-0">01</div>
+                        <div>
+                            <h4 class="font-bold text-white mb-1 uppercase text-xs tracking-widest text-left">Run This Audit With Your Team</h4>
+                            <p class="text-xs text-slate-400 text-left">Use team averages to generate your real Structural Strain Score. Share the "Executive Briefing" copy with your C-Suite.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-5 p-6 bg-white/5 rounded-2xl border border-white/10">
+                        <div class="w-10 h-10 rounded-xl bg-[#2a7ca3] flex items-center justify-center font-bold text-sm flex-shrink-0">02</div>
+                        <div>
+                            <h4 class="font-bold text-white mb-1 uppercase text-xs tracking-widest text-left">Book a Discovery Call</h4>
+                            <p class="text-xs text-slate-400 text-left">Nikki will review your score and identify the top 2 structural fractures most likely to trigger attrition in the next 90 days.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-5 p-6 bg-[#31245a]/40 rounded-2xl border border-[#ac6dbf]/30">
+                        <div class="w-10 h-10 rounded-xl bg-[#ac6dbf] flex items-center justify-center font-bold text-sm flex-shrink-0 text-white">03</div>
+                        <div>
+                            <h4 class="font-bold text-white mb-1 uppercase text-xs tracking-widest text-left">Recalibrate. Retain. Scale.</h4>
+                            <p class="text-xs text-slate-400 text-left">Engage the Architecture Audit ($7.5k–$15k) or The Intensive ($35k–$55k) to rebuild your load paths before your next growth phase.</p>
+                        </div>
+                    </div>
+                    <a href="https://calendar.app.google/M75xXcnUFNTKFcSe6" target="_blank" class="block w-full text-center py-5 bg-[#064680] hover:bg-[#58bbc2] hover:text-[#064680] text-white rounded-2xl font-bold uppercase tracking-widest text-sm transition-all shadow-xl mt-4 no-underline">
+                        Book Your Discovery Call with Nikki →
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <footer class="mt-20 py-10 border-t border-white/5 text-center">
+            <div class="flex justify-center items-center gap-4 mb-4 opacity-40">
+                <div class="logo-box font-serif bg-white/10 px-2 py-1 rounded">ST</div>
+                <p class="text-[10px] font-bold uppercase tracking-[0.5em]">Strategic Transformations © 2026</p>
+            </div>
+            <p class="text-slate-600 text-[9px] uppercase tracking-widest font-light">Proprietary Intellectual Property of Nikki Cates Miller | UNMASK Leadership Architecture™</p>
+        </footer>
+    </div>
+
+    <script>
+        let myChart;
+
+        function initChart() {
+            const ctx = document.getElementById('strainChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Auth Gap', 'Squeeze', 'Masking', 'Escalation', 'AI Load'],
+                    datasets: [{
+                        label: 'Team Strain Profile',
+                        data: [1, 1, 1, 1, 1],
+                        backgroundColor: 'rgba(88, 187, 194, 0.2)',
+                        borderColor: '#58bbc2',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#58bbc2',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#58bbc2'
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            min: 1,
+                            max: 5,
+                            beginAtZero: false,
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { display: false },
+                            pointLabels: { color: '#94a3b8', font: { size: 10, weight: 'bold', family: "'Urbanist', sans-serif" } }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function calculateScore() {
+            const q1 = parseFloat(document.getElementById('q1').value);
+            const q2 = parseFloat(document.getElementById('q2').value);
+            const q3 = parseFloat(document.getElementById('q3').value);
+            const q4 = parseFloat(document.getElementById('q4').value);
+            const q5 = parseFloat(document.getElementById('q5').value);
+
+            document.getElementById('val1').innerText = q1.toFixed(1);
+            document.getElementById('val2').innerText = q2.toFixed(1);
+            document.getElementById('val3').innerText = q3.toFixed(1);
+            document.getElementById('val4').innerText = q4.toFixed(1);
+            document.getElementById('val5').innerText = q5.toFixed(1);
+
+            const weightedSum = (q1 * 3) + (q2 * 2) + (q3 * 1) + (q4 * 2.5) + (q5 * 2.5);
+            const score = weightedSum / 11;
+
+            document.getElementById('mainScore').innerText = score.toFixed(2);
+
+            updateInsights(score, q1, q4, q5);
+            updateChart([q1, q2, q3, q4, q5]);
+        }
+
+        function updateChart(newData) {
+            myChart.data.datasets[0].data = newData;
+            myChart.update();
+        }
+
+        function updateInsights(score, q1, q4, q5) {
+            const badge = document.getElementById('statusBadge');
+            const text = document.getElementById('insightText');
+            const list = document.getElementById('recommendationList');
+            
+            list.innerHTML = '';
+
+            if (score < 2.5) {
+                badge.innerText = "Status: Stable";
+                badge.className = "px-2 py-1 bg-emerald-500/20 text-emerald-400 text-[9px] font-bold rounded uppercase";
+                text.innerText = "Current organizational architecture is stable. Capacity matches current load paths.";
+                addRec(list, "Formalize existing decision rights in written job descriptions.");
+                addRec(list, "Establish a baseline for AI tool verification time.");
+            } else if (score < 3.8) {
+                badge.innerText = "Status: Emerging Strain";
+                badge.className = "px-2 py-1 bg-amber-500/20 text-amber-400 text-[9px] font-bold rounded uppercase";
+                text.innerText = "Architecture is leaking capacity. Mid-level leaders are currently acting as shock absorbers.";
+                addRec(list, "Delete 2 escalation points: Move specific spend authority down to direct managers.");
+                addRec(list, "Perform a Load-Path audit on mission-critical roles.");
+            } else {
+                badge.innerText = "Status: Critical Risk";
+                badge.className = "px-2 py-1 bg-red-500/20 text-red-400 text-[9px] font-bold rounded uppercase";
+                text.innerText = "Immediate intervention required. System is extracting more capacity than it sustains. Turnover imminent.";
+                addRec(list, "Emergency Recalibration: Re-align 100% accountability with at least 80% authority.");
+                addRec(list, "Halt non-essential AI production output until oversight capacity is reinforced.");
+            }
+        }
+
+        function addRec(list, text) {
+            const li = document.createElement('li');
+            li.innerHTML = `<span class="text-[#ac6dbf] mr-2">•</span> ${text}`;
+            list.appendChild(li);
+        }
+
+        function copyInsight() {
+            const score = document.getElementById('mainScore').innerText;
+            const status = document.getElementById('statusBadge').innerText;
+            const insight = document.getElementById('insightText').innerText;
+            const textToCopy = `UNMASK STRUCTURAL AUDIT SUMMARY\nScore: ${score}\nStatus: ${status}\n\nAnalysis: ${insight}\n\nGenerated by Strategic Transformations | UNMASK Leadership Architecture™`;
+            
+            const textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = "Copied to Clipboard";
+            btn.style.color = "#58bbc2";
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.color = "white";
+            }, 2000);
+        }
+
+        window.onload = function() {
+            initChart();
+            calculateScore();
+        }
+    </script>
+</body>
+</html>
