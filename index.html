@@ -5,15 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Strategic Transformations | Portal</title>
     
+    <!-- Premium Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     
+    <!-- Styling CDNs -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
+    <!-- Firebase Compat SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -23,6 +26,7 @@
         .font-lora { font-family: 'Lora', serif; }
         .hex { clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); }
         .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glow-teal { box-shadow: 0 0 25px rgba(45, 212, 191, 0.15); }
         
         /* Interactive Slider Styling */
         input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; cursor: pointer; }
@@ -36,6 +40,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
+        // --- 1. CONFIGURATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyBG4228evDP211fvJv1LMSt0AZ8a8kj31c", 
             authDomain: "unmask-audit-2026.firebaseapp.com",
@@ -50,6 +55,8 @@
         const db = firebase.firestore();
 
         const { useState, useEffect } = React;
+
+        // --- COMPONENTS ---
 
         const BrandLogo = ({ size = "md" }) => {
             const containerClass = size === "lg" ? "scale-[1.6] mb-24" : "scale-75";
@@ -77,7 +84,8 @@
                 operationalSqueeze: 1,
                 maskingDensity: 1,
                 escalationDensity: 1,
-                totalStrainScore: 1
+                totalStrainScore: 1,
+                loadPathEfficiency: 100
             });
             const [error, setError] = useState(null);
             const [inputValue, setInputValue] = useState('');
@@ -91,7 +99,7 @@
                         
                         if (auditId) {
                             const normalizedId = auditId.trim().toUpperCase();
-                            // Determine Mode: UNMASK2026 kills two birds (Interactive)
+                            // UNMASK2026 enables the interactive sliders
                             if (normalizedId === 'UNMASK2026') setIsInteractiveMode(true);
 
                             const path = `artifacts/unmask-audit-2026/public/data/structural_audits/${normalizedId}`;
@@ -103,8 +111,10 @@
                                     setError(`ID_NOT_FOUND: "${auditId}" is not in the system.`);
                                 }
                                 setLoading(false);
-                            }, (err) => { setError(`ACCESS_DENIED`); setLoading(false); });
-                        } else { setLoading(false); }
+                            }, (err) => { setError(`ACCESS_DENIED: Firebase Security Rules Block.`); setLoading(false); });
+                        } else {
+                            setLoading(false);
+                        }
                     });
                 };
                 init();
@@ -113,38 +123,56 @@
             const updateField = (key, val) => {
                 if (!isInteractiveMode) return;
                 const newData = { ...auditData, [key]: parseFloat(val) };
+                // Calculate new aggregate strain
                 newData.totalStrainScore = (newData.authorityAlignment + newData.operationalSqueeze + newData.maskingDensity + newData.escalationDensity) / 4;
                 setAuditData(newData);
             };
 
             const handleGo = () => { if (inputValue.trim()) window.location.search = `?id=${inputValue.trim().toUpperCase()}`; };
 
-            if (loading) return <div className="min-h-screen bg-[#070e24] flex items-center justify-center"><div className="w-10 h-10 border-2 border-t-teal-500 rounded-full animate-spin" /></div>;
+            if (loading) return (
+                <div className="min-h-screen bg-[#070e24] flex items-center justify-center">
+                    <div className="w-10 h-10 border-2 border-t-teal-500 rounded-full animate-spin" />
+                </div>
+            );
 
+            // --- ENTRY PORTAL VIEW ---
             if (!auditId || error) return (
                 <div className="min-h-screen bg-[#070e24] flex flex-col items-center justify-center p-8 text-center font-urbanist">
                     <BrandLogo size="lg" />
                     <h2 className="text-4xl lg:text-5xl font-lora text-white mb-6 italic tracking-tight font-medium">Secure Diagnostic Access</h2>
                     <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.4em] mb-16">Strategic Transformations Portal</p>
                     <div className="max-w-md w-full space-y-6">
-                        <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder="......" className="w-full bg-slate-900/40 border border-white/5 rounded-2xl px-6 py-8 text-white text-center text-2xl font-mono focus:border-blue-500/40 outline-none" onKeyDown={(e) => { if (e.key === 'Enter') handleGo(); }} />
+                        <input 
+                            type="text" 
+                            value={inputValue} 
+                            onChange={(e) => setInputValue(e.target.value)} 
+                            placeholder="......" 
+                            className="w-full bg-slate-900/40 border border-white/5 rounded-2xl px-6 py-8 text-white text-center text-2xl font-mono focus:border-blue-500/40 outline-none transition-all placeholder:text-slate-800" 
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleGo(); }} 
+                        />
                         {error && <p className="text-red-400 text-[10px] font-bold uppercase tracking-widest">{error}</p>}
-                        <button onClick={handleGo} className="w-full bg-[#163d8d] text-white font-black py-6 rounded-2xl shadow-2xl uppercase tracking-[0.2em] text-sm">Authenticate Session</button>
+                        <button onClick={handleGo} className="w-full bg-[#163d8d] hover:bg-[#1e4eb0] text-white font-black py-6 rounded-2xl shadow-2xl uppercase tracking-[0.2em] text-sm transition-all active:scale-95">
+                            Authenticate Session
+                        </button>
                     </div>
                     <footer className="mt-32 opacity-40">
-                        <p className="text-[10px] text-slate-700 uppercase tracking-[0.2em] leading-relaxed font-bold">THIS DIAGNOSTIC ENGINE IS PROPRIETARY IP. <br/> UNAUTHORIZED ACCESS IS PROHIBITED.</p>
+                        <p className="text-[10px] text-slate-700 uppercase tracking-[0.2em] leading-relaxed font-bold">
+                            THIS DIAGNOSTIC ENGINE IS PROPRIETARY IP. <br/> UNAUTHORIZED ACCESS IS PROHIBITED.
+                        </p>
                     </footer>
                 </div>
             );
 
+            // --- DASHBOARD VIEW ---
             return (
-                <div className="min-h-screen bg-[#070e24] text-white flex flex-col font-urbanist">
+                <div className="min-h-screen bg-[#070e24] text-white flex flex-col font-urbanist selection:bg-teal-500/30">
                     <header className="border-b border-white/5 bg-[#0f172a]/40 backdrop-blur-xl sticky top-0 z-50 p-6 no-print">
                         <div className="max-w-7xl mx-auto flex items-center justify-between">
                             <div className="flex items-center gap-14">
                                 <BrandLogo />
                                 <div>
-                                    <h1 className="text-2xl font-lora font-bold uppercase tracking-tighter leading-none">UNMASK <span className="text-teal-400 italic lowercase text-xl font-light">diagnostic</span></h1>
+                                    <h1 className="text-2xl font-lora font-bold uppercase tracking-tight leading-none">UNMASK <span className="text-teal-400 italic lowercase text-xl font-light">diagnostic</span></h1>
                                     <p className="text-[9px] text-white/30 font-black uppercase tracking-[0.4em] mt-2 italic">Ref: {auditId}</p>
                                 </div>
                             </div>
@@ -158,16 +186,32 @@
                     </header>
 
                     <main className="max-w-7xl mx-auto w-full p-6 lg:p-12 grid grid-cols-1 lg:grid-cols-12 gap-12 flex-grow">
+                        {/* Summary Card */}
                         <div className="lg:col-span-4 glass rounded-[3rem] p-10 shadow-2xl h-fit">
-                            <h2 className="text-4xl font-lora italic text-white/90 mb-10 border-b border-white/5 pb-8 tracking-tighter font-medium">The Briefing</h2>
-                            <div className="bg-teal-500/5 p-8 rounded-3xl border border-teal-500/10 text-center">
-                                <p className="text-[10px] font-black text-teal-400 uppercase tracking-widest mb-4">Diagnostic Verdict</p>
-                                <p className="text-2xl font-lora italic text-white/80 leading-snug">
-                                    {auditData?.totalStrainScore > 3.5 ? 'System Fragmented.' : 'Integrity Stable.'}
-                                </p>
+                            <h2 className="text-4xl font-lora italic text-white/90 mb-10 border-b border-white/5 pb-8 tracking-tighter">The Briefing</h2>
+                            
+                            <div className="space-y-12">
+                                <div className="bg-black/20 p-8 rounded-[2.5rem] border border-white/5 shadow-inner">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Integrity Score</span>
+                                        <div className="h-1.5 w-1.5 rounded-full bg-teal-400 animate-pulse" />
+                                    </div>
+                                    <div className="text-7xl font-black text-white tracking-tighter mb-4 leading-none">
+                                        {auditData?.loadPathEfficiency || 88}%
+                                    </div>
+                                    <p className="text-xs text-white/40 leading-relaxed italic font-lora font-light">Overall operational health based on hierarchy velocity.</p>
+                                </div>
+
+                                <div className="bg-teal-500/5 p-8 rounded-3xl border border-teal-500/10 text-center">
+                                    <p className="text-[10px] font-black text-teal-400 uppercase tracking-widest mb-4">Diagnostic Verdict</p>
+                                    <p className="text-2xl font-lora italic text-white/80 leading-snug">
+                                        {auditData?.totalStrainScore > 3.5 ? 'System Fragmented. Recalibration Required.' : 'Structural Integrity is Stable.'}
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
+                        {/* Audit Details Card */}
                         <div className="lg:col-span-8 glass rounded-[3.5rem] p-8 lg:p-16 shadow-2xl relative overflow-hidden">
                             <div className="flex flex-col md:flex-row justify-between mb-24 border-b border-white/5 pb-14">
                                 <h2 className="text-6xl font-lora text-white italic tracking-tighter font-medium">Structural Audit</h2>
@@ -183,10 +227,10 @@
                                 {[
                                     { k: "authorityAlignment", l: "Authority Alignment", s: "Responsibility vs power gap." },
                                     { k: "operationalSqueeze", l: "Operational Squeeze", s: "Output load vs capacity." },
-                                    { k: "maskingDensity", l: "Masking Density", s: "Energy lost to theater." },
+                                    { k: "maskingDensity", l: "Masking Density", s: "Energy lost to performance theater." },
                                     { k: "escalationDensity", l: "Escalation Density", s: "Decision path friction." }
                                 ].map((f) => (
-                                    <div key={f.k}>
+                                    <div key={f.k} className="group">
                                         <div className="flex justify-between items-end mb-6">
                                             <div>
                                                 <h3 className="text-xl font-black uppercase tracking-widest text-white/90 leading-none mb-3">{f.l}</h3>
@@ -205,7 +249,7 @@
                                             />
                                         ) : (
                                             <div className="h-3.5 bg-black/40 rounded-full border border-white/5 p-[3px] overflow-hidden shadow-inner">
-                                                <div className="h-full bg-gradient-to-r from-teal-600 via-teal-400 to-cyan-400 rounded-full transition-all duration-[2000ms]" 
+                                                <div className="h-full bg-gradient-to-r from-teal-600 via-teal-400 to-cyan-400 rounded-full transition-all duration-[2000ms] ease-out shadow-[0_0_20px_rgba(45,212,191,0.3)]" 
                                                      style={{ width: `${Math.min(((auditData?.[f.k] || 0) / 5) * 100, 100)}%` }} />
                                             </div>
                                         )}
@@ -219,10 +263,10 @@
                         <div className="max-w-3xl mx-auto space-y-12">
                             <h2 className="text-4xl font-lora italic text-white/80 font-light">Shift from managing symptoms to redesigning architecture.</h2>
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
-                                <a href="https://calendar.app.google/PDyBgij9Xapa9e6h9" target="_blank" className="bg-white text-[#070e24] px-14 py-6 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl hover:bg-teal-400 transition-all">
+                                <a href="https://calendar.app.google/PDyBgij9Xapa9e6h9" target="_blank" className="bg-white text-[#070e24] px-14 py-6 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl hover:bg-teal-400 transition-all active:scale-95">
                                     BOOK RECALIBRATION
                                 </a>
-                                <button onClick={() => window.print()} className="text-white/20 hover:text-white font-black uppercase tracking-[0.4em] text-[10px]">
+                                <button onClick={() => window.print()} className="text-white/20 hover:text-white font-black uppercase tracking-[0.4em] text-[10px] transition-all">
                                     EXPORT AUDIT PDF
                                 </button>
                             </div>
