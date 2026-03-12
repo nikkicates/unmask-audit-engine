@@ -3,371 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UNMASK | AI Structural Audit Dashboard</title>
+    <title>Strategic Transformations | Portal</title>
+    
+    <!-- High-End Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <!-- CDNs -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,700;1,700&family=Urbanist:wght@300;400;600;700;800;900&display=swap');
-        
-        :root {
-            --st-navy: #064680;
-            --st-teal: #58bbc2;
-            --st-blue-mid: #2a7ca3;
-            --st-purple-dark: #31245a;
-            --st-purple-light: #ac6dbf;
-            --bg: #0f172a;
-        }
-
-        body { font-family: 'Urbanist', sans-serif; background-color: var(--bg); color: #f8fafc; scroll-behavior: smooth; overflow-x: hidden; }
-        h1, h2, h3, h4, .font-serif { font-family: 'Lora', serif; }
-
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1.5rem;
-        }
-
-        .st-gradient-text {
-            background: linear-gradient(135deg, var(--st-teal) 0%, var(--st-purple-light) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        input[type=range] { accent-color: var(--st-teal); width: 100%; height: 6px; background: #1e293b; border-radius: 5px; appearance: none; }
-        .metric-value { color: var(--st-teal); font-weight: 800; font-size: 1.25rem; }
-
-        .brand-strategic { font-family: 'Lora', serif; font-weight: 700; font-size: 1.5rem; color: #ffffff; text-transform: uppercase; line-height: 1; }
-        .brand-transformations { font-family: 'Urbanist', sans-serif; font-weight: 700; font-size: 0.75rem; color: var(--st-teal); letter-spacing: 0.35em; text-transform: uppercase; }
-
-        .definition-card { border-left: 4px solid var(--st-blue-mid); background: rgba(255, 255, 255, 0.02); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .definition-card:hover { background: rgba(255, 255, 255, 0.05); border-left-color: var(--st-purple-light); transform: translateX(5px); }
-
-        /* Auth Screen Styles */
-        #authOverlay { position: fixed; inset: 0; z-index: 9999; background: var(--bg); display: flex; align-items: center; justify-content: center; transition: all 0.5s ease-in-out; }
-        #authOverlay.hidden { opacity: 0; pointer-events: none; }
-        
-        .pulse-logo { animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        body { background-color: #070e24; font-family: 'Urbanist', sans-serif; margin: 0; overflow-x: hidden; }
+        .font-lora { font-family: 'Lora', serif; }
+        .hex { clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); }
     </style>
 </head>
-<body class="p-4 md:p-8 selection:bg-[#ac6dbf]/30">
+<body>
+    <div id="root"></div>
 
-    <!-- ACCESS GATE: The "Paywall" UI -->
-    <div id="authOverlay">
-        <div class="max-w-md w-full p-10 glass-panel text-center border-[#58bbc2]/20 shadow-2xl">
-            <div class="w-20 h-20 mx-auto mb-8 pulse-logo">
-                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M40 10L57.32 20V40L40 50L22.68 40V20L40 10Z" fill="#2a7ca3" fill-opacity="0.9"/>
-                    <path d="M30 35L47.32 45V65L30 75L12.68 65V45L30 35Z" fill="#ac6dbf" fill-opacity="0.8"/>
-                    <path d="M60 35L77.32 45V65L60 75L42.68 65V45L60 35Z" stroke="#ffffff" stroke-width="3"/>
-                </svg>
-            </div>
-            <h2 class="text-2xl font-serif font-bold mb-2">Secure Diagnostic Access</h2>
-            <p class="text-slate-500 text-xs uppercase tracking-widest font-bold mb-8">Strategic Transformations Portal</p>
-            
-            <div class="space-y-4">
-                <input type="password" id="accessKey" placeholder="Enter Access Code" 
-                    class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-center text-white focus:outline-none focus:border-[#58bbc2] transition-all">
-                <button onclick="checkAccess()" class="w-full py-4 bg-[#064680] hover:bg-[#58bbc2] text-white rounded-xl font-bold uppercase tracking-widest text-xs transition-all shadow-lg">
-                    Authenticate Session
-                </button>
-                <div id="errorMsg" class="text-red-400 text-[10px] font-bold uppercase tracking-widest h-4 opacity-0 transition-opacity">Invalid Access Code</div>
-            </div>
-            
-            <p class="text-[9px] text-slate-600 mt-10 uppercase tracking-widest font-light">
-                This diagnostic engine is proprietary IP. <br/> Unauthorized access is prohibited.
-            </p>
-        </div>
-    </div>
+    <script type="text/babel">
+        // --- 1. CONFIGURATION (PASTE YOUR API KEY HERE) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBG4228evDP211fvJv1LMSt0AZ8a8kj31c", 
+            authDomain: "unmask-audit-2026.firebaseapp.com",
+            projectId: "unmask-audit-2026",
+            storageBucket: "unmask-audit-2026.firebasestorage.app",
+            messagingSenderId: "94518937589",
+            appId: "1:94518937589:web:a484d36bf7a11ffe9a82bc"
+        };
 
-    <!-- MAIN DASHBOARD (Hidden until auth) -->
-    <div id="dashboardContent" class="opacity-0 transition-opacity duration-1000">
-        <div class="max-w-7xl mx-auto">
-            <!-- Executive Navigation -->
-            <nav class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-8 glass-panel p-8 border-white/5 shadow-2xl">
-                <div class="flex items-center gap-6">
-                    <div class="w-16 h-16 flex-shrink-0">
-                        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M40 10L57.32 20V40L40 50L22.68 40V20L40 10Z" fill="#2a7ca3" fill-opacity="0.9"/>
-                            <path d="M30 35L47.32 45V65L30 75L12.68 65V45L30 35Z" fill="#ac6dbf" fill-opacity="0.8"/>
-                            <path d="M60 35L77.32 45V65L60 75L42.68 65V45L60 35Z" stroke="#ffffff" stroke-width="3"/>
-                            <path d="M60 50L68.66 55V65L60 70L51.34 65V55L60 50Z" fill="#58bbc2"/>
-                        </svg>
-                    </div>
-                    <div class="flex flex-col text-left">
-                        <div class="brand-strategic">Strategic</div>
-                        <div class="brand-transformations">Transformations</div>
-                        <div class="text-[9px] text-slate-500 uppercase font-bold tracking-[0.2em] mt-1 italic">Structural Recalibration Platform</div>
-                    </div>
-                </div>
-                
-                <div class="flex gap-4 items-center">
-                    <div class="bg-white/5 px-8 py-4 rounded-2xl border border-white/10 text-right">
-                        <div class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1 text-right">Team Structural Strain Score</div>
-                        <div id="mainScore" class="text-5xl font-serif font-bold text-[#58bbc2]">1.00</div>
-                    </div>
-                    <div class="flex flex-col items-center gap-2">
-                        <a href="https://calendar.app.google/M75xXcnUFNTKFcSe6" target="_blank" class="px-8 py-5 bg-[#064680] hover:bg-[#58bbc2] text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-lg hover:shadow-[#58bbc2]/20 text-center no-underline">
-                            Book Discovery Call
-                        </a>
-                        <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase text-center">with <span class="text-[#58bbc2]">Nikki Cates</span></p>
-                    </div>
-                </div>
-            </nav>
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 text-left">
-                <!-- Side: Lexicon & Definitions -->
-                <div class="lg:col-span-4 space-y-6">
-                    <div class="glass-panel p-8">
-                        <h3 class="text-xl font-bold mb-6 border-b border-white/10 pb-4 text-[#58bbc2]">The Executive Lexicon</h3>
-                        <p class="text-sm text-slate-400 mb-8 leading-relaxed italic">Aligning leadership on the core variables of structural health.</p>
-                        <div class="space-y-4">
-                            <div class="definition-card p-5 rounded-xl">
-                                <h4 class="text-xs font-bold text-white uppercase tracking-widest mb-2">Authority Gap</h4>
-                                <p class="text-xs text-slate-400 leading-relaxed">The delta between accountability and decision-rights. High gaps predict attrition.</p>
-                            </div>
-                            <div class="definition-card p-5 rounded-xl">
-                                <h4 class="text-xs font-bold text-white uppercase tracking-widest mb-2">Masking Tax</h4>
-                                <p class="text-xs text-slate-400 leading-relaxed">The productive capacity lost when leaders hide structural friction to maintain status.</p>
-                            </div>
-                            <div class="definition-card p-5 rounded-xl">
-                                <h4 class="text-xs font-bold text-white uppercase tracking-widest mb-2">Escalation Density</h4>
-                                <p class="text-xs text-slate-400 leading-relaxed">Measurement of velocity loss. High density indicates routine tasks clogging the C-suite.</p>
-                            </div>
-                            <div class="definition-card p-5 rounded-xl">
-                                <h4 class="text-xs font-bold text-white uppercase tracking-widest mb-2">AI Oversight Load</h4>
-                                <p class="text-xs text-slate-400 leading-relaxed">The 'Invisible Labor' of automation. Oversight requirements often exceed production gains.</p>
-                            </div>
+        const { useState, useEffect } = React;
+
+        const BrandLogo = ({ size = "md" }) => {
+            const containerClass = size === "lg" ? "scale-[1.8] mb-24" : "scale-100";
+            const hexSize = size === "lg" ? "w-6 h-6" : "w-3 h-3";
+            return (
+                <div className={`relative flex items-center justify-center ${containerClass}`}>
+                    <div className="relative">
+                        <div className={`${hexSize} bg-teal-400 hex absolute -top-4 left-1/2 -translate-x-1/2`} />
+                        <div className={`${hexSize} bg-purple-600 hex absolute top-1 -left-4`} />
+                        <div className={`${hexSize} bg-white hex absolute top-1 -right-4 flex items-center justify-center p-[2px]`}>
+                             <div className="w-full h-full bg-[#064680] hex flex items-center justify-center"><div className="w-1/2 h-1/2 bg-teal-400 hex" /></div>
                         </div>
                     </div>
                 </div>
+            );
+        };
 
-                <!-- Center: Sliders & Controls -->
-                <div class="lg:col-span-8 space-y-8">
-                    <div class="glass-panel p-10">
-                        <div class="flex justify-between items-center mb-10 border-b border-white/10 pb-6">
-                            <h2 class="text-3xl font-serif font-bold">Diagnostic Sliders</h2>
-                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest italic">Input Team Averages (Scale 1-5)</span>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-12">
-                            <div class="space-y-4">
-                                <div class="flex justify-between items-center">
-                                    <label class="text-sm font-bold uppercase tracking-wider text-slate-300">1. Authority Alignment</label>
-                                    <span class="metric-value" id="val1">1.0</span>
-                                </div>
-                                <input type="range" id="q1" min="1" max="5" step="0.1" value="1.0" oninput="calculateScore()">
-                                <p class="text-xs text-slate-400 font-semibold mt-1">Power Alignment vs. Blame accountability.</p>
-                            </div>
-                            <div class="space-y-4">
-                                <div class="flex justify-between items-center">
-                                    <label class="text-sm font-bold uppercase tracking-wider text-slate-300">2. Operational Squeeze</label>
-                                    <span class="metric-value" id="val2">1.0</span>
-                                </div>
-                                <input type="range" id="q2" min="1" max="5" step="0.1" value="1.0" oninput="calculateScore()">
-                                <p class="text-xs text-slate-400 font-semibold mt-1">Current load vs. human capacity.</p>
-                            </div>
-                            <div class="space-y-4">
-                                <div class="flex justify-between items-center">
-                                    <label class="text-sm font-bold uppercase tracking-wider text-slate-300">3. Culture of Masking</label>
-                                    <span class="metric-value" id="val3">1.0</span>
-                                </div>
-                                <input type="range" id="q3" min="1" max="5" step="0.1" value="1.0" oninput="calculateScore()">
-                                <p class="text-xs text-slate-400 font-semibold mt-1">Pressure to project perfection vs. friction.</p>
-                            </div>
-                            <div class="space-y-4">
-                                <div class="flex justify-between items-center">
-                                    <label class="text-sm font-bold uppercase tracking-wider text-slate-300">4. Escalation Density</label>
-                                    <span class="metric-value" id="val4">1.0</span>
-                                </div>
-                                <input type="range" id="q4" min="1" max="5" step="0.1" value="1.0" oninput="calculateScore()">
-                                <p class="text-xs text-slate-400 font-semibold mt-1">Frequency of routine senior sign-off requirements.</p>
-                            </div>
-                            <div class="md:col-span-2 space-y-4 border-t border-white/5 pt-8">
-                                <div class="flex justify-between items-center">
-                                    <label class="text-sm font-bold uppercase tracking-wider text-[#ac6dbf]">5. AI Oversight Load (Future Risk)</label>
-                                    <span class="metric-value text-[#ac6dbf]" id="val5">1.0</span>
-                                </div>
-                                <input type="range" id="q5" min="1" max="5" step="0.1" value="1.0" oninput="calculateScore()" style="accent-color: var(--st-purple-light);">
-                                <p class="text-xs text-slate-400 font-semibold mt-1 text-center italic">Is automation increasing production volume without recalibrating human verification time?</p>
-                            </div>
-                        </div>
-                    </div>
+        const App = () => {
+            const [loading, setLoading] = useState(true);
+            const [auditData, setAuditData] = useState(null);
+            const [error, setError] = useState(null);
+            const [inputValue, setInputValue] = useState('');
+            const [authState, setAuthState] = useState('Connecting...');
+            const [auditId, setAuditId] = useState(new URLSearchParams(window.location.search).get('id'));
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="glass-panel p-8">
-                            <h3 class="text-xs font-bold uppercase tracking-widest text-center mb-8 opacity-50">Team Fracture Profile</h3>
-                            <div class="h-[280px]"><canvas id="strainChart"></canvas></div>
-                        </div>
-                        <div class="glass-panel p-8 border-l-4 border-l-[#58bbc2]">
-                            <div class="flex justify-between items-start mb-6">
-                                <h3 class="text-xs font-bold uppercase tracking-widest text-[#58bbc2]">Automated Summary</h3>
-                                <div id="statusBadge" class="px-2 py-1 bg-emerald-500/20 text-emerald-400 text-[9px] font-bold rounded uppercase">Status: Stable</div>
-                            </div>
-                            <p id="insightText" class="text-lg font-light leading-relaxed text-slate-200 mb-8 italic">Architecture is stable. Capacity matches current load paths.</p>
-                            <div class="border-t border-white/10 pt-6">
-                                <h4 class="text-[10px] font-bold uppercase text-slate-500 mb-4 tracking-widest">Priority Recalibration</h4>
-                                <ul id="recommendationList" class="space-y-3 text-sm text-slate-300 font-light"></ul>
-                            </div>
-                            <button onclick="copyInsight()" class="mt-10 w-full py-4 bg-white/5 border border-white/10 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-[#58bbc2] hover:text-[#064680] transition-all">Copy for Executive Briefing</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- What's Next Section -->
-            <div class="mt-16 glass-panel p-10 md:p-16 border border-[#58bbc2]/20 relative overflow-hidden text-left">
-                <div class="absolute top-0 right-0 w-96 h-96 bg-[#ac6dbf]/5 rounded-full blur-[120px] pointer-events-none"></div>
-                <div class="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                    <div>
-                        <p class="text-[10px] font-bold text-[#ac6dbf] uppercase tracking-[0.3em] mb-4">The Pathway Forward</p>
-                        <h2 class="text-4xl font-serif font-bold mb-6 leading-tight">Your Score Is the <span class="st-gradient-text">Starting Point.</span></h2>
-                        <p class="text-lg text-slate-400 font-light leading-relaxed mb-6">A score above <strong class="text-white">3.8</strong> signals imminent talent loss. One 90-minute strategy session with Nikki pays for itself many times over by protecting your most mission-critical assets.</p>
-                        <a href="https://calendar.app.google/M75xXcnUFNTKFcSe6" target="_blank" class="inline-block px-10 py-5 bg-[#064680] hover:bg-[#58bbc2] text-white rounded-2xl font-bold uppercase tracking-widest text-xs transition-all no-underline">Schedule Your Deep-Dive Briefing →</a>
-                    </div>
-                    <div class="space-y-4">
-                        <div class="p-6 bg-white/5 rounded-2xl border border-white/10"><h4 class="font-bold text-white mb-1 uppercase text-[10px] tracking-widest">01 Run Team Audit</h4><p class="text-[11px] text-slate-400">Identify fracture points across your lead-paths.</p></div>
-                        <div class="p-6 bg-white/5 rounded-2xl border border-white/10"><h4 class="font-bold text-white mb-1 uppercase text-[10px] tracking-widest">02 Book Discovery</h4><p class="text-[11px] text-slate-400">Map your 213% turnover tax risk with a strategist.</p></div>
-                        <div class="p-6 bg-[#31245a]/40 rounded-2xl border border-[#ac6dbf]/30"><h4 class="font-bold text-white mb-1 uppercase text-[10px] tracking-widest">03 Recalibrate Architecture</h4><p class="text-[11px] text-slate-400">Final redesign and decision-rights alignment.</p></div>
-                    </div>
-                </div>
-            </div>
+            useEffect(() => {
+                const init = async () => {
+                    if (firebaseConfig.apiKey.includes("YOUR_API")) {
+                        setError("ACTION REQUIRED: You must paste your API Key into the index.html file.");
+                        setLoading(false);
+                        return;
+                    }
 
-            <footer class="mt-20 py-10 border-t border-white/5 text-center">
-                <p class="text-slate-600 text-[9px] uppercase tracking-widest font-light">Proprietary Intellectual Property of Nikki Cates Miller | UNMASK Leadership Architecture™ © 2026</p>
-            </footer>
-        </div>
-    </div>
-
-    <script>
-        // --- SECURITY LOGIC ---
-        // REPLACE 'UNMASK2026' WITH YOUR DESIRED PASSCODE
-        const SECRET_KEY = "UNMASK2026"; 
-
-        function checkAccess() {
-            const input = document.getElementById('accessKey').value;
-            const error = document.getElementById('errorMsg');
-            
-            if (input === SECRET_KEY) {
-                document.getElementById('authOverlay').classList.add('hidden');
-                document.getElementById('dashboardContent').classList.remove('opacity-0');
-                initChart();
-                calculateScore();
-            } else {
-                error.classList.remove('opacity-0');
-                setTimeout(() => error.classList.add('opacity-0'), 2000);
-            }
-        }
-
-        // Allow 'Enter' key to authenticate
-        document.getElementById('accessKey').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') checkAccess();
-        });
-
-        // --- DASHBOARD LOGIC ---
-        let myChart;
-        function initChart() {
-            const ctx = document.getElementById('strainChart').getContext('2d');
-            myChart = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: ['Auth Alignment', 'Op Squeeze', 'Masking Tax', 'Escalation', 'AI Load'],
-                    datasets: [{
-                        label: 'Team Strain Profile',
-                        data: [1, 1, 1, 1, 1],
-                        backgroundColor: 'rgba(88, 187, 194, 0.2)',
-                        borderColor: '#58bbc2',
-                        borderWidth: 2,
-                        pointBackgroundColor: '#58bbc2'
-                    }]
-                },
-                options: {
-                    scales: {
-                        r: {
-                            min: 1, max: 5, beginAtZero: false,
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
-                            ticks: { display: false },
-                            pointLabels: { color: '#94a3b8', font: { size: 10, weight: 'bold' } }
+                    auth.onAuthStateChanged(async (user) => {
+                        if (!user) {
+                            setAuthState('Authenticating...');
+                            await auth.signInAnonymously().catch(e => {
+                                setError(`Auth Error: ${e.message}. (Check if Anonymous Auth is enabled in Firebase)`);
+                                setAuthState('Auth Failed');
+                            });
+                        } else {
+                            setAuthState('Secure Link Established');
                         }
-                    },
-                    plugins: { legend: { display: false } }
+
+                        if (user && auditId) {
+                            setAuthState(`Fetching Data for: ${auditId}`);
+                            // EXACT PATH MATCHING YOUR SCREENSHOT
+                            const path = `artifacts/unmask-audit-2026/public/data/structural_audits/${auditId.trim()}`;
+                            
+                            const unsubscribe = db.doc(path).onSnapshot((snap) => {
+                                if (snap.exists) {
+                                    setAuditData(snap.data());
+                                    setError(null);
+                                    setAuthState('Stream Active');
+                                } else {
+                                    setError(`ID NOT RECOGNIZED: We couldn't find a report for "${auditId}". Check your spelling in Firestore.`);
+                                }
+                                setLoading(false);
+                            }, (err) => {
+                                setError(`Database Access Denied: ${err.message}. (Check your Firestore Rules)`);
+                                setLoading(false);
+                            });
+                            return () => unsubscribe();
+                        } else {
+                            setLoading(false);
+                        }
+                    });
+                };
+                init();
+            }, [auditId]);
+
+            const handleGo = () => {
+                if (inputValue.trim()) {
+                    window.location.search = `?id=${inputValue.trim().toUpperCase()}`;
                 }
-            });
-        }
+            };
 
-        function calculateScore() {
-            const q1 = parseFloat(document.getElementById('q1').value);
-            const q2 = parseFloat(document.getElementById('q2').value);
-            const q3 = parseFloat(document.getElementById('q3').value);
-            const q4 = parseFloat(document.getElementById('q4').value);
-            const q5 = parseFloat(document.getElementById('q5').value);
+            if (loading) return (
+                <div className="min-h-screen bg-[#070e24] flex flex-col items-center justify-center text-teal-400 gap-4">
+                    <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-[10px] uppercase tracking-widest opacity-40">{authState}</p>
+                </div>
+            );
 
-            document.getElementById('val1').innerText = q1.toFixed(1);
-            document.getElementById('val2').innerText = q2.toFixed(1);
-            document.getElementById('val3').innerText = q3.toFixed(1);
-            document.getElementById('val4').innerText = q4.toFixed(1);
-            document.getElementById('val5').innerText = q5.toFixed(1);
+            if (error) return (
+                <div className="min-h-screen bg-[#070e24] flex items-center justify-center p-6 text-white text-center">
+                    <div className="max-w-xl w-full bg-[#161d31] border border-red-400/20 rounded-[2.5rem] p-12 shadow-2xl">
+                        <h2 className="text-2xl font-lora italic mb-6">System Access Alert</h2>
+                        <div className="bg-black/20 p-6 rounded-2xl mb-8 font-mono text-red-300 text-xs break-all leading-relaxed">{error}</div>
+                        <button onClick={() => window.location.search = ''} className="text-teal-400 font-black uppercase text-[10px] tracking-widest hover:text-white">Restart Engine</button>
+                    </div>
+                </div>
+            );
 
-            const weightedSum = (q1 * 3) + (q2 * 2) + (q3 * 1) + (q4 * 2.5) + (q5 * 2.5);
-            const score = weightedSum / 11;
-            document.getElementById('mainScore').innerText = score.toFixed(2);
+            if (!auditId) return (
+                <div className="min-h-screen bg-[#070e24] flex flex-col items-center justify-center p-6 text-center">
+                    <BrandLogo size="lg" />
+                    <h2 className="text-4xl lg:text-5xl font-lora text-white mb-6 italic">Secure Diagnostic Access</h2>
+                    <p className="text-slate-500 text-[11px] font-black uppercase tracking-[0.4em] mb-16">Strategic Transformations Portal</p>
+                    <div className="max-w-md w-full space-y-5">
+                        <input 
+                            type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} 
+                            placeholder="Enter Report ID" 
+                            className="w-full bg-[#161d31] border border-white/5 rounded-2xl px-6 py-8 text-white text-center text-xl uppercase tracking-widest outline-none focus:border-blue-500/50 transition-all"
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleGo(); }} 
+                        />
+                        <button onClick={handleGo} className="w-full bg-[#163d8d] hover:bg-[#1e4eb0] text-white font-black py-6 rounded-2xl shadow-xl uppercase tracking-widest text-sm transition-all active:scale-95">
+                            Authenticate Session
+                        </button>
+                    </div>
+                    <p className="mt-12 text-[9px] text-white/10 uppercase tracking-widest">{authState}</p>
+                </div>
+            );
 
-            updateInsights(score, q1, q4, q5);
-            myChart.data.datasets[0].data = [q1, q2, q3, q4, q5];
-            myChart.update();
-        }
+            return (
+                <div className="min-h-screen bg-[#064680] text-white flex flex-col font-urbanist">
+                    <header className="border-b border-white/10 bg-[#04325c]/50 p-6 flex items-center justify-between">
+                        <div className="flex items-center gap-10">
+                            <BrandLogo />
+                            <div>
+                                <h1 className="text-xl font-lora font-bold uppercase">UNMASK <span className="text-teal-400 italic lowercase text-lg">Diagnostic</span></h1>
+                                <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.4em] mt-2 italic">Client_Ref: {auditId}</p>
+                            </div>
+                        </div>
+                        <div className="hidden sm:flex items-center gap-2 bg-teal-500/10 px-4 py-2 rounded-full border border-teal-500/20">
+                            <div className="h-1.5 w-1.5 rounded-full bg-teal-400 animate-pulse" />
+                            <span className="text-[9px] font-black uppercase tracking-widest text-teal-400">Live Secure Stream</span>
+                        </div>
+                    </header>
 
-        function updateInsights(score, q1, q4, q5) {
-            const badge = document.getElementById('statusBadge');
-            const text = document.getElementById('insightText');
-            const list = document.getElementById('recommendationList');
-            list.innerHTML = '';
+                    <main className="max-w-7xl mx-auto px-6 py-20 w-full grid lg:grid-cols-12 gap-20">
+                        <div className="lg:col-span-7 space-y-16">
+                            {[
+                                { k: "authorityAlignment", l: "Authority Alignment" },
+                                { k: "operationalSqueeze", l: "Operational Squeeze" },
+                                { k: "maskingDensity", l: "Masking Density" },
+                                { k: "escalationDensity", l: "Escalation Density" }
+                            ].map((f) => (
+                                <div key={f.k}>
+                                    <div className="flex justify-between items-end mb-6">
+                                        <h3 className="text-xl font-black uppercase tracking-widest">{f.l}</h3>
+                                        <div className="text-5xl font-black text-teal-400">{(auditData?.[f.k] || 0).toFixed(1)}</div>
+                                    </div>
+                                    <div className="h-3 bg-black/20 rounded-full border border-white/5 overflow-hidden">
+                                        <div className="h-full bg-teal-400 transition-all duration-[2000ms]" style={{ width: `${Math.min(((auditData?.[f.k] || 0) / 5) * 100, 100)}%` }} />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="lg:col-span-5 bg-[#04325c] p-12 rounded-[3.5rem] border border-white/10 shadow-2xl text-center relative overflow-hidden">
+                            <h2 className="text-xl font-lora italic text-white/60 mb-10 uppercase tracking-widest">Aggregate Strain</h2>
+                            <div className="text-9xl font-black text-teal-400 tracking-tighter leading-none mb-10 drop-shadow-2xl">
+                                {(auditData?.totalStrainScore || 0).toFixed(2)}
+                            </div>
+                            <div className="bg-white/5 p-8 rounded-[2rem] border border-white/5 italic font-lora text-white/70 text-lg leading-relaxed">
+                                {auditData?.totalStrainScore > 3.5 ? 
+                                    "Critical strain detected in structural load-paths. Redesign required." : 
+                                    "Structural integrity remains within stable parameters."}
+                            </div>
+                        </div>
+                    </main>
 
-            if (score < 2.5) {
-                badge.innerText = "Status: Stable";
-                badge.className = "px-2 py-1 bg-emerald-500/20 text-emerald-400 text-[9px] font-bold rounded uppercase";
-                text.innerText = "Architecture is stable. Capacity matches current load paths.";
-                addRec(list, "Formalize decision rights in operational protocols.");
-                addRec(list, "Baseline AI tool verification time metrics.");
-            } else if (score < 3.8) {
-                badge.innerText = "Status: Emerging Strain";
-                badge.className = "px-2 py-1 bg-amber-500/20 text-amber-400 text-[9px] font-bold rounded uppercase";
-                text.innerText = "Mid-level leaders are acting as shock absorbers. Attrition risk is high.";
-                addRec(list, "Delete 2 escalation points immediately.");
-                addRec(list, "Perform a Load-Path audit on critical roles.");
-            } else {
-                badge.innerText = "Status: Critical Risk";
-                badge.className = "px-2 py-1 bg-red-500/20 text-red-400 text-[9px] font-bold rounded uppercase";
-                text.innerText = "Immediate intervention required. Systemic talent collapse imminent.";
-                addRec(list, "Emergency Recalibration: Align accountability with 80% authority.");
-                addRec(list, "Halt non-essential AI production output.");
-            }
-        }
-
-        function addRec(list, text) {
-            const li = document.createElement('li');
-            li.innerHTML = `<span class="text-[#ac6dbf] mr-2">•</span> ${text}`;
-            list.appendChild(li);
-        }
-
-        function copyInsight() {
-            const score = document.getElementById('mainScore').innerText;
-            const status = document.getElementById('statusBadge').innerText;
-            const insight = document.getElementById('insightText').innerText;
-            const textToCopy = `UNMASK AUDIT SUMMARY\nScore: ${score}\nStatus: ${status}\nAnalysis: ${insight}`;
-            
-            const textArea = document.createElement("textarea");
-            textArea.value = textToCopy;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            
-            const btn = event.target;
-            btn.innerText = "Copied to Clipboard";
-            setTimeout(() => btn.innerText = "Copy for Executive Briefing", 2000);
-        }
+                    <footer className="py-24 text-center">
+                        <a href="https://strategictransformations.com/book" className="inline-flex bg-white text-[#064680] px-12 py-5 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-teal-400 transition-all shadow-2xl">
+                            Book Discovery with Nikki Cates
+                        </a>
+                    </footer>
+                </div>
+            );
+        };
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
 </html>
