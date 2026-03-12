@@ -5,18 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Strategic Transformations | Portal</title>
     
-    <!-- Fonts -->
+    <!-- Premium Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     
-    <!-- CDNs -->
+    <!-- Styling CDNs -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-    <!-- Firebase Compat -->
+    <!-- Firebase Compat SDKs (Essential for single-file reliability) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -25,21 +25,27 @@
         body { background-color: #070e24; font-family: 'Urbanist', sans-serif; margin: 0; overflow-x: hidden; color: white; }
         .font-lora { font-family: 'Lora', serif; }
         .font-urbanist { font-family: 'Urbanist', sans-serif; }
+        
+        /* Strategic Transformations Hexagon Branding */
         .hex { clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); }
         
-        .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .glow-teal { box-shadow: 0 0 20px rgba(45, 212, 191, 0.2); }
+        /* UI Effects */
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glow-teal { box-shadow: 0 0 25px rgba(45, 212, 191, 0.15); }
         
-        @keyframes pulse-soft { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .animate-pulse-soft { animation: pulse-soft 3s infinite; }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #070e24; }
+        ::-webkit-scrollbar-thumb { background: #1e3a8a; border-radius: 10px; }
 
-        @media print { .no-print { display: none !important; } }
+        @media print { .no-print { display: none !important; } body { background: white !important; color: black !important; } }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
+        // --- 1. CONFIGURATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyBG4228evDP211fvJv1LMSt0AZ8a8kj31c", 
             authDomain: "unmask-audit-2026.firebaseapp.com",
@@ -55,18 +61,20 @@
 
         const { useState, useEffect } = React;
 
+        // --- COMPONENTS ---
+
         const BrandLogo = ({ size = "md" }) => {
-            const containerClass = size === "lg" ? "scale-[1.5] mb-20" : "scale-75";
+            const containerClass = size === "lg" ? "scale-[1.6] mb-24" : "scale-75";
             const hexSize = "w-6 h-6";
             return (
                 <div className={`relative flex items-center justify-center ${containerClass}`}>
                     <div className="relative w-12 h-12">
                         {/* Top Teal */}
-                        <div className={`${hexSize} bg-teal-400 hex absolute top-0 left-1/2 -translate-x-1/2 z-20`} />
+                        <div className={`${hexSize} bg-teal-400 hex absolute top-0 left-1/2 -translate-x-1/2 z-20 shadow-[0_0_15px_rgba(45,212,191,0.5)]`} />
                         {/* Left Purple */}
                         <div className={`${hexSize} bg-purple-600 hex absolute top-4 left-0 z-10`} />
                         {/* Right Outline */}
-                        <div className={`${hexSize} bg-slate-500 hex absolute top-4 right-0 flex items-center justify-center p-[2px] z-10`}>
+                        <div className={`${hexSize} bg-slate-400 hex absolute top-4 right-0 flex items-center justify-center p-[2px] z-10`}>
                             <div className="w-full h-full bg-[#070e24] hex" />
                         </div>
                     </div>
@@ -85,20 +93,38 @@
                 const init = async () => {
                     auth.onAuthStateChanged(async (user) => {
                         if (!user) await auth.signInAnonymously().catch(console.error);
+                        
                         if (auditId) {
-                            const path = `artifacts/unmask-audit-2026/public/data/structural_audits/${auditId.trim()}`;
-                            db.doc(path).onSnapshot((snap) => {
-                                if (snap.exists) { setAuditData(snap.data()); setError(null); }
-                                else { setError(`ID_NOT_RECOGNIZED: "${auditId}" is not in the diagnostic stream.`); }
+                            // Path matching your Firestore screenshot exactly
+                            const path = `artifacts/unmask-audit-2026/public/data/structural_audits/${auditId.trim().toUpperCase()}`;
+                            
+                            const unsubscribe = db.doc(path).onSnapshot((snap) => {
+                                if (snap.exists) {
+                                    setAuditData(snap.data());
+                                    setError(null);
+                                } else {
+                                    setError(`ID_NOT_FOUND: Record "${auditId}" not found in diagnostic stream.`);
+                                }
                                 setLoading(false);
-                            }, (err) => { setError(`ACCESS_DENIED: Firebase security check failed.`); setLoading(false); });
-                        } else { setLoading(false); }
+                            }, (err) => {
+                                setError(`ACCESS_DENIED: Firebase Security Handshake failed. Check Authorized Domains.`);
+                                setLoading(false);
+                            });
+                            return () => unsubscribe();
+                        } else {
+                            setLoading(false);
+                        }
                     });
                 };
                 init();
             }, [auditId]);
 
-            const handleGo = () => { if (inputValue.trim()) window.location.search = `?id=${inputValue.trim().toUpperCase()}`; };
+            const handleAuthenticate = () => {
+                if (inputValue.trim()) {
+                    const id = inputValue.trim().toUpperCase();
+                    window.location.search = `?id=${id}`;
+                }
+            };
 
             if (loading) return (
                 <div className="min-h-screen bg-[#070e24] flex items-center justify-center">
@@ -106,87 +132,91 @@
                 </div>
             );
 
-            if (error) return (
-                <div className="min-h-screen bg-[#070e24] flex items-center justify-center p-6 text-center">
-                    <div className="max-w-xl w-full glass rounded-[3rem] p-16 shadow-2xl border-red-500/10">
-                        <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-8">
-                             <svg className="text-red-500 w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            // --- ENTRY PORTAL VIEW ---
+            if (!auditId || error) {
+                return (
+                    <div className="min-h-screen bg-[#070e24] flex flex-col items-center justify-center p-8 text-center font-urbanist">
+                        <BrandLogo size="lg" />
+                        
+                        <div className="max-w-2xl w-full">
+                            <h2 className="text-4xl lg:text-5xl font-lora text-white mb-6 italic tracking-tight font-medium">
+                                Secure Diagnostic Access
+                            </h2>
+                            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.4em] mb-16">
+                                Strategic Transformations Portal
+                            </p>
+                            
+                            <div className="max-w-md mx-auto space-y-6">
+                                <input 
+                                    type="text" 
+                                    value={inputValue} 
+                                    onChange={(e) => setInputValue(e.target.value)} 
+                                    placeholder="......" 
+                                    className={`w-full bg-slate-900/40 border ${error ? 'border-red-500/50' : 'border-white/5'} rounded-2xl px-6 py-8 text-white text-center text-2xl font-mono focus:border-blue-500/40 outline-none transition-all placeholder:text-slate-800 shadow-2xl`}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') handleAuthenticate(); }} 
+                                />
+                                {error && <p className="text-red-400 text-[10px] font-bold uppercase tracking-widest mt-2">{error}</p>}
+                                <button 
+                                    onClick={handleAuthenticate} 
+                                    className="w-full bg-[#163d8d] hover:bg-[#1e4eb0] text-white font-black py-6 rounded-2xl shadow-2xl uppercase tracking-[0.2em] text-sm transition-all active:scale-95"
+                                >
+                                    Authenticate Session
+                                </button>
+                            </div>
+
+                            <footer className="mt-32 opacity-40">
+                                <p className="text-[10px] text-slate-500 uppercase tracking-[0.2em] leading-relaxed font-bold">
+                                    THIS DIAGNOSTIC ENGINE IS PROPRIETARY IP. <br/> UNAUTHORIZED ACCESS IS PROHIBITED.
+                                </p>
+                            </footer>
                         </div>
-                        <h2 className="text-3xl font-lora italic mb-6">Access Denied</h2>
-                        <div className="bg-black/40 p-6 rounded-2xl mb-10 font-mono text-red-400 text-xs leading-relaxed border border-red-500/5">{error}</div>
-                        <button onClick={() => window.location.search = ''} className="text-teal-400 font-black uppercase text-xs tracking-[0.3em] hover:text-white transition-all">RESTART ENGINE</button>
                     </div>
-                </div>
-            );
+                );
+            }
 
-            if (!auditId) return (
-                <div className="min-h-screen bg-[#070e24] flex flex-col items-center justify-center p-8 text-center font-urbanist">
-                    <BrandLogo size="lg" />
-                    <h2 className="text-5xl font-lora text-white mb-6 italic font-medium tracking-tight">Secure Diagnostic Access</h2>
-                    <p className="text-slate-500 text-xs font-black uppercase tracking-[0.4em] mb-20">Strategic Transformations Portal</p>
-                    
-                    <div className="max-w-md w-full space-y-6">
-                        <input 
-                            type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} 
-                            placeholder="......" 
-                            className="w-full bg-slate-900/50 border border-white/5 rounded-2xl px-6 py-8 text-white text-center text-2xl font-mono focus:border-blue-500/30 outline-none transition-all placeholder:text-slate-800"
-                            onKeyDown={(e) => { if (e.key === 'Enter') handleGo(); }} 
-                        />
-                        <button onClick={handleGo} className="w-full bg-[#163d8d] hover:bg-[#1e4eb0] text-white font-black py-6 rounded-2xl shadow-2xl uppercase tracking-[0.2em] text-sm transition-all active:scale-95">
-                            Authenticate Session
-                        </button>
-                    </div>
-
-                    <footer className="mt-32 max-w-sm mx-auto">
-                        <p className="text-[10px] text-slate-700 uppercase tracking-[0.2em] leading-relaxed font-bold">
-                            THIS DIAGNOSTIC ENGINE IS PROPRIETARY IP. <br/> UNAUTHORIZED ACCESS IS PROHIBITED.
-                        </p>
-                    </footer>
-                </div>
-            );
-
+            // --- DASHBOARD VIEW ---
             return (
                 <div className="min-h-screen bg-[#070e24] text-white flex flex-col font-urbanist selection:bg-teal-500/30">
-                    <header className="border-b border-white/5 bg-[#0f172a]/40 backdrop-blur-xl sticky top-0 z-50 p-6">
+                    <header className="border-b border-white/5 bg-[#0f172a]/40 backdrop-blur-xl sticky top-0 z-50 p-6 no-print">
                         <div className="max-w-7xl mx-auto flex items-center justify-between">
-                            <div className="flex items-center gap-12">
+                            <div className="flex items-center gap-14">
                                 <BrandLogo />
                                 <div>
-                                    <h1 className="text-2xl font-lora font-bold uppercase tracking-tight leading-none">
-                                        UNMASK <span className="text-teal-400 italic lowercase text-xl font-light">diagnostic</span>
+                                    <h1 className="text-2xl font-lora font-bold uppercase tracking-tighter leading-none">
+                                        UNMASK <span className="text-teal-400 italic font-light lowercase text-xl">diagnostic</span>
                                     </h1>
-                                    <p className="text-[10px] text-white/30 font-black uppercase tracking-[0.4em] mt-2 italic">Client_Ref: {auditId}</p>
+                                    <p className="text-[9px] text-white/30 font-black uppercase tracking-[0.4em] mt-2 italic">Client_Ref: {auditId}</p>
                                 </div>
                             </div>
                             <div className="hidden sm:flex items-center gap-3 bg-teal-500/5 px-4 py-2 rounded-full border border-teal-500/10">
-                                <div className="h-1.5 w-1.5 rounded-full bg-teal-400 animate-pulse" />
-                                <span className="text-[9px] font-black uppercase tracking-widest text-teal-400">Live Secure Stream</span>
+                                <div className="h-1.5 w-1.5 rounded-full bg-teal-400 animate-pulse glow-teal" />
+                                <span className="text-[9px] font-black uppercase tracking-widest text-teal-400">Secure Live Stream</span>
                             </div>
                         </div>
                     </header>
 
-                    <main className="max-w-7xl mx-auto w-full p-6 lg:p-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
+                    <main className="max-w-7xl mx-auto w-full p-6 lg:p-12 grid grid-cols-1 lg:grid-cols-12 gap-12 flex-grow">
                         {/* Executive Summary Left */}
                         <div className="lg:col-span-4 space-y-8">
-                            <div className="glass rounded-[3rem] p-10 border-t-white/10">
-                                <h2 className="text-4xl font-lora italic text-white/90 mb-10 border-b border-white/5 pb-8 tracking-tighter">The Briefing</h2>
+                            <div className="glass rounded-[3rem] p-10 shadow-2xl">
+                                <h2 className="text-4xl font-lora italic text-white/90 mb-10 border-b border-white/5 pb-8 tracking-tighter font-medium">The Briefing</h2>
                                 
-                                <div className="space-y-10">
-                                    <div className="bg-black/20 p-8 rounded-3xl border border-white/5">
+                                <div className="space-y-12">
+                                    <div className="bg-black/20 p-8 rounded-[2.5rem] border border-white/5 shadow-inner">
                                         <div className="flex justify-between items-center mb-6">
-                                            <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">Load-Path Efficiency</span>
-                                            <div className="h-2 w-2 rounded-full bg-teal-400 animate-pulse shadow-[0_0_10px_teal]" />
+                                            <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Load-Path Efficiency</span>
+                                            <div className="h-1.5 w-1.5 rounded-full bg-teal-400 animate-pulse" />
                                         </div>
-                                        <div className="text-6xl font-black text-white tracking-tighter mb-4">
+                                        <div className="text-7xl font-black text-white tracking-tighter mb-4 leading-none">
                                             {auditData?.loadPathEfficiency || 88}%
                                         </div>
-                                        <p className="text-xs text-white/40 leading-relaxed italic font-lora">Structural load-path identifies resistance in decision flow.</p>
+                                        <p className="text-xs text-white/40 leading-relaxed italic font-lora font-light">Structural integrity of decision paths across hierarchy.</p>
                                     </div>
 
-                                    <div className="bg-teal-500/5 p-6 rounded-2xl border border-teal-500/10">
-                                        <p className="text-[10px] font-black text-teal-400 uppercase tracking-widest mb-3">Diagnostic Verdict</p>
-                                        <p className="text-xl font-lora italic text-white/80 leading-snug">
-                                            {auditData?.totalStrainScore > 3.5 ? 'System is fragmented. Recalibration required.' : 'Structural integrity is currently stable.'}
+                                    <div className="bg-teal-500/5 p-8 rounded-3xl border border-teal-500/10 text-center">
+                                        <p className="text-[10px] font-black text-teal-400 uppercase tracking-widest mb-4">Diagnostic Verdict</p>
+                                        <p className="text-2xl font-lora italic text-white/80 leading-snug font-medium">
+                                            {auditData?.totalStrainScore > 3.5 ? 'System Fragmented.' : 'Integrity Stable.'}
                                         </p>
                                     </div>
                                 </div>
@@ -194,36 +224,36 @@
                         </div>
 
                         {/* Audit Sliders Right */}
-                        <div className="lg:col-span-8 glass rounded-[3.5rem] p-8 lg:p-16 relative overflow-hidden">
-                            <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-20 gap-8 border-b border-white/5 pb-12">
-                                <h2 className="text-6xl font-lora text-white italic tracking-tighter font-medium">Structural Health</h2>
+                        <div className="lg:col-span-8 glass rounded-[3.5rem] p-8 lg:p-16 relative overflow-hidden shadow-2xl">
+                            <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-24 gap-8 border-b border-white/5 pb-14">
+                                <h2 className="text-6xl font-lora text-white italic tracking-tighter font-medium">Structural Audit</h2>
                                 <div className="text-center md:text-right">
-                                    <p className="text-[11px] text-white/20 font-black tracking-[0.5em] uppercase mb-2">Aggregate Strain</p>
-                                    <div className="text-8xl font-black text-teal-400 tracking-tighter leading-none drop-shadow-[0_0_15px_rgba(45,212,191,0.3)]">
+                                    <p className="text-[11px] text-white/20 font-black tracking-[0.6em] uppercase mb-2">Aggregate Strain</p>
+                                    <div className="text-8xl font-black text-teal-400 tracking-tighter leading-none drop-shadow-[0_0_20px_rgba(45,212,191,0.4)]">
                                         {(auditData?.totalStrainScore || 0).toFixed(2)}
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="space-y-16">
+                            <div className="space-y-20">
                                 {[
-                                    { k: "authorityAlignment", l: "Authority Alignment", s: "Power vs Accountability gap." },
-                                    { k: "operationalSqueeze", l: "Operational Squeeze", s: "Load vs Capacity threshold." },
-                                    { k: "maskingDensity", l: "Masking Density", s: "Energy spent on theater." },
-                                    { k: "escalationDensity", l: "Escalation Density", s: "Hierarchy friction points." }
+                                    { k: "authorityAlignment", l: "Authority Alignment", s: "Responsibility vs power gap." },
+                                    { k: "operationalSqueeze", l: "Operational Squeeze", s: "Output Load vs capacity limit." },
+                                    { k: "maskingDensity", l: "Masking Density", s: "Energy lost to theater." },
+                                    { k: "escalationDensity", l: "Escalation Density", s: "Decision path friction." }
                                 ].map((f) => (
                                     <div key={f.k} className="group">
                                         <div className="flex justify-between items-end mb-6">
                                             <div>
-                                                <h3 className="text-xl font-black uppercase tracking-widest text-white/90 leading-none mb-2 group-hover:text-teal-400 transition-colors">{f.l}</h3>
+                                                <h3 className="text-xl font-black uppercase tracking-widest text-white/90 leading-none mb-3 group-hover:text-teal-400 transition-colors">{f.l}</h3>
                                                 <p className="text-[11px] font-lora italic text-white/30">{f.s}</p>
                                             </div>
-                                            <div className="text-4xl font-black text-teal-400 tracking-tighter">
+                                            <div className="text-5xl font-black text-teal-400 tracking-tighter leading-none">
                                                 {(auditData?.[f.k] || 0).toFixed(1)}
                                             </div>
                                         </div>
-                                        <div className="h-3 bg-black/40 rounded-full border border-white/5 p-[2px] overflow-hidden">
-                                            <div className="h-full bg-gradient-to-r from-teal-600 to-cyan-400 rounded-full shadow-[0_0_15px_rgba(45,212,191,0.2)] transition-all duration-[2000ms] ease-out" 
+                                        <div className="h-3.5 bg-black/40 rounded-full border border-white/5 p-[3px] overflow-hidden shadow-inner">
+                                            <div className="h-full bg-gradient-to-r from-teal-600 via-teal-400 to-cyan-400 rounded-full transition-all duration-[2000ms] ease-out shadow-[0_0_20px_rgba(45,212,191,0.3)]" 
                                                  style={{ width: `${Math.min(((auditData?.[f.k] || 0) / 5) * 100, 100)}%` }} />
                                         </div>
                                     </div>
@@ -233,17 +263,17 @@
                     </main>
 
                     <footer className="bg-white/5 border-t border-white/5 py-24 px-6 text-center mt-20 no-print">
-                        <div className="max-w-3xl mx-auto space-y-10">
-                            <h2 className="text-4xl font-lora italic text-white/80">Ready to fix the leaks?</h2>
+                        <div className="max-w-3xl mx-auto space-y-12">
+                            <h2 className="text-4xl font-lora italic text-white/80 font-light">Shift from managing symptoms to redesigning architecture.</h2>
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
-                                <a href="https://strategictransformations.com/book" className="bg-white text-[#070e24] px-12 py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl hover:bg-teal-400 transition-all active:scale-95">
-                                    Book Recalibration
+                                <a href="https://strategictransformations.com/book" className="bg-white text-[#070e24] px-14 py-6 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl hover:bg-teal-400 transition-all active:scale-95">
+                                    BOOK RECALIBRATION
                                 </a>
-                                <button onClick={() => window.print()} className="text-white/20 hover:text-white font-black uppercase tracking-[0.3em] text-[10px] transition-all">
+                                <button onClick={() => window.print()} className="text-white/20 hover:text-white font-black uppercase tracking-[0.4em] text-[10px] transition-all">
                                     EXPORT AUDIT PDF
                                 </button>
                             </div>
-                            <p className="text-[9px] text-white/5 font-black tracking-[1em] uppercase pt-12">&copy; 2026 STRATEGIC TRANSFORMATIONS</p>
+                            <p className="text-[9px] text-white/5 font-black tracking-[1em] uppercase pt-16 font-urbanist">&copy; 2026 STRATEGIC TRANSFORMATIONS</p>
                         </div>
                     </footer>
                 </div>
