@@ -26,7 +26,16 @@
         input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; cursor: pointer; }
         input[type=range]::-webkit-slider-runnable-track { height: 10px; border-radius: 99px; background: rgba(0,0,0,0.5); }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: #2dd4bf; margin-top: -5px; border: 2px solid white; }
-        @media print { .no-print { display: none !important; } }
+        
+        @media print { 
+            .no-print { display: none !important; } 
+            body { background: white !important; color: black !important; }
+            .glass { background: white !important; border: 1px solid #ddd !important; color: black !important; box-shadow: none !important; }
+            .text-teal-400 { color: #0d9488 !important; }
+            .bg-teal-400 { background-color: #0d9488 !important; }
+            .bg-black\/40 { background-color: #f1f5f9 !important; border: 1px solid #cbd5e1 !important; }
+            h1, h2, h3, p { color: black !important; }
+        }
     </style>
 </head>
 <body>
@@ -48,6 +57,15 @@
         const db = firebase.firestore();
 
         const { useState, useEffect } = React;
+
+        // Icons
+        const CalendarIcon = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        );
+
+        const FileIcon = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 22 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        );
 
         const BrandLogo = ({ size = "md" }) => {
             const containerClass = size === "lg" ? "scale-[1.6] mb-24" : "scale-75";
@@ -111,32 +129,37 @@
                     <div className="max-w-md w-full space-y-6">
                         <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder="Enter ID..." className="w-full bg-slate-900/40 border border-white/5 rounded-2xl px-6 py-8 text-white text-center text-2xl outline-none" onKeyDown={(e) => e.key === 'Enter' && handleGo()} />
                         {error && <p className="text-red-400 text-xs font-bold uppercase tracking-widest">{error}</p>}
-                        <button onClick={handleGo} className="w-full bg-[#163d8d] text-white font-black py-6 rounded-2xl uppercase tracking-[0.2em] text-sm">Authenticate Session</button>
+                        <button onClick={handleGo} className="w-full bg-[#163d8d] text-white font-black py-6 rounded-2xl uppercase tracking-[0.2em] text-sm shadow-xl active:scale-95 transition-all">Authenticate Session</button>
                     </div>
                 </div>
             );
 
             return (
                 <div className="min-h-screen bg-[#070e24] text-white flex flex-col font-urbanist">
-                    <header className="border-b border-white/5 bg-[#0f172a]/40 backdrop-blur-xl p-6">
+                    <header className="border-b border-white/5 bg-[#0f172a]/40 backdrop-blur-xl p-6 sticky top-0 z-50 no-print">
                         <div className="max-w-7xl mx-auto flex items-center justify-between">
                             <div className="flex items-center gap-14"><BrandLogo /><div><h1 className="text-2xl font-lora font-bold uppercase">UNMASK <span className="text-teal-400 italic font-light">diagnostic</span></h1></div></div>
                             <div className="bg-teal-500/5 border border-teal-500/10 px-4 py-2 rounded-full"><span className="text-[10px] font-black uppercase text-teal-400 tracking-widest">Certified Audit Report</span></div>
                         </div>
                     </header>
 
-                    <main className="max-w-7xl mx-auto w-full p-6 lg:p-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
+                    <main className="max-w-7xl mx-auto w-full p-6 lg:p-12 grid grid-cols-1 lg:grid-cols-12 gap-12 flex-grow">
                         {/* Briefing Section */}
-                        <div className="lg:col-span-4 glass rounded-[3rem] p-10">
+                        <div className="lg:col-span-4 glass rounded-[3rem] p-10 shadow-xl h-fit">
                             <h2 className="text-4xl font-lora italic mb-10 border-b border-white/5 pb-8">The Briefing</h2>
                             <div className="bg-black/20 p-8 rounded-[2.5rem] border border-white/5 text-center">
                                 <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Integrity Score</span>
                                 <div className="text-7xl font-black mt-4 leading-none">{auditData?.loadPathEfficiency || "--"}%</div>
                             </div>
+                            <div className="mt-10 p-6 bg-teal-500/5 rounded-2xl border border-teal-500/10">
+                                <p className="text-sm font-lora italic text-slate-400 leading-relaxed text-center">
+                                    "{auditData?.totalStrainScore > 3.5 ? 'Structural fragmentation detected. Recalibration of leadership load-paths is required.' : 'Organizational architecture shows high stability with minimal decision latency.'}"
+                                </p>
+                            </div>
                         </div>
 
                         {/* Audit Details */}
-                        <div className="lg:col-span-8 glass rounded-[3.5rem] p-8 lg:p-16">
+                        <div className="lg:col-span-8 glass rounded-[3.5rem] p-8 lg:p-16 shadow-2xl relative">
                             <div className="flex justify-between mb-24 border-b border-white/5 pb-14">
                                 <h2 className="text-6xl font-lora italic">Structural Audit</h2>
                                 <div className="text-right">
@@ -147,14 +170,17 @@
 
                             <div className="space-y-16">
                                 {[
-                                    { k: "authorityAlignment", l: "Authority Alignment" },
-                                    { k: "operationalSqueeze", l: "Operational Squeeze" },
-                                    { k: "maskingDensity", l: "Masking Density" },
-                                    { k: "escalationDensity", l: "Escalation Density" }
+                                    { k: "authorityAlignment", l: "Authority Alignment", s: "Power vs. Responsibility Gap" },
+                                    { k: "operationalSqueeze", l: "Operational Squeeze", s: "Output Load vs. Capacity" },
+                                    { k: "maskingDensity", l: "Masking Density", s: "Energy lost to Performance Theater" },
+                                    { k: "escalationDensity", l: "Escalation Density", s: "Decision Path Friction" }
                                 ].map((f) => (
                                     <div key={f.k}>
-                                        <div className="flex justify-between mb-6">
-                                            <h3 className="text-xl font-black uppercase tracking-widest text-white/90">{f.l}</h3>
+                                        <div className="flex justify-between mb-6 items-end">
+                                            <div>
+                                                <h3 className="text-xl font-black uppercase tracking-widest text-white/90 leading-none mb-2">{f.l}</h3>
+                                                <p className="text-[11px] font-lora italic text-white/30">{f.s}</p>
+                                            </div>
                                             <div className="text-5xl font-black text-teal-400 tracking-tighter">{(auditData?.[f.k] || 0).toFixed(1)}</div>
                                         </div>
                                         <div className="h-3.5 bg-black/40 rounded-full border border-white/5 p-[3px] overflow-hidden">
@@ -165,6 +191,27 @@
                             </div>
                         </div>
                     </main>
+
+                    {/* Footer CTA Section */}
+                    <footer className="bg-white/5 border-t border-white/5 py-24 px-6 text-center mt-20 no-print">
+                        <div className="max-w-3xl mx-auto space-y-12">
+                            <h2 className="text-5xl font-lora italic text-white/90">Ready to Recalibrate?</h2>
+                            <p className="text-slate-400 text-lg font-light leading-relaxed">Stop managing symptoms. Schedule a structural logic review to identify the capacity leaks costing your organization its top talent.</p>
+                            
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
+                                <a href="https://calendar.app.google/M75xXcnUFNTKFcSe6" target="_blank" className="bg-white text-[#070e24] px-12 py-5 rounded-2xl font-black text-xs uppercase tracking-[0.3em] shadow-2xl hover:bg-teal-400 transition-all active:scale-95 flex items-center gap-3">
+                                    <CalendarIcon /> BOOK DISCOVERY WITH NIKKI CATES
+                                </a>
+                                <button onClick={() => window.print()} className="text-white/20 hover:text-white font-black uppercase tracking-[0.4em] text-[10px] transition-all flex items-center gap-2">
+                                    <FileIcon /> EXPORT AUDIT PDF
+                                </button>
+                            </div>
+                            
+                            <div className="pt-20">
+                                <p className="text-[9px] text-white/5 font-black tracking-[1em] uppercase">&copy; 2026 STRATEGIC TRANSFORMATIONS</p>
+                            </div>
+                        </div>
+                    </footer>
                 </div>
             );
         };
